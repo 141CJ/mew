@@ -1,0 +1,39 @@
+name: bug report
+description: create a report to help us improve mew
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        thanks for reporting an issue with mew.
+  - type: textarea
+    id: problem
+    attributes:
+      label: problem description
+      description: clear and concise explanation of what happened.
+      placeholder: what went wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: reproduction steps
+      description: steps to reproduce the behavior.
+      placeholder: |
+        1. cd into git repo
+        2. run mew
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: environment
+      description: operating system, shell, terminal emulator, and rustc version.
+      placeholder: |
+        - os: arch linux / ubuntu
+        - shell: bash / zsh / fish / nu
+        - terminal: alacritty / kitty / foot
+        - mew version: 0.1.0
+    validations:
+      required: true

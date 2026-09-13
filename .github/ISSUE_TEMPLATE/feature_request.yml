@@ -1,0 +1,17 @@
+name: feature request
+description: suggest an idea or enhancement for mew
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        suggest a new feature or improvement for mew.
+  - type: textarea
+    id: proposal
+    attributes:
+      label: proposal
+      description: clear and concise description of the requested enhancement and why it belongs in mew.
+      placeholder: what would you like added or improved?
+    validations:
+      required: true

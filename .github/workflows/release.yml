@@ -1,0 +1,27 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release:
+    name: build release binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: build release binary
+        run: cargo build --release --locked
+
+      - name: strip release binary
+        run: strip target/release/mew
+
+      - name: upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/mew

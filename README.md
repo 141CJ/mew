@@ -29,6 +29,8 @@ inside git worktrees, shell hooks can show it automatically.
 
 outside git, mew switches to a small fastfetch-style system view.
 
+<img src="assets/no_repo.png" alt="mew demo" width="600"><br>
+
 no daemon. no subprocess-heavy git polling. just a fast render.
 
 ## install

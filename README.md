@@ -75,7 +75,7 @@ mew defaults to a Catppuccin-inspired palette and accepts per-element colors.
 
 * Linux
 * Nerd Font recommended
-* Rust 1.XX+ if building from source
+* Rust 1.85+ if building from source
 
 ## license
 

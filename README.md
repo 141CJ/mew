@@ -59,7 +59,7 @@ curl -sSf https://raw.githubusercontent.com/programmersd21/mew/main/scripts/inst
 or:
 
 ```bash
-cargo install mew-bin
+cargo install mew-cli
 ```
 
 ## usage

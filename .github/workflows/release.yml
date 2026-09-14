@@ -3,12 +3,16 @@ name: release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   build-release:
     name: build release binary
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 

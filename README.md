@@ -27,11 +27,28 @@ run `mew` in a project and get the useful stuff at a glance:
 
 inside git worktrees, shell hooks can show it automatically.
 
-outside git, mew switches to a small fastfetch-style system view.
+outside git, mew becomes a small system readout.
 
-<img src="assets/no_repo.png" alt="mew demo" width="600"><br>
+<img src="assets/no_repo.png" alt="mew outside a git repository" width="600">
 
-no daemon. no subprocess-heavy git polling. just a fast render.
+no daemon. no heavy git subprocess polling. just a fast render.
+
+## mew vs fastfetch
+
+[Fastfetch](https://github.com/fastfetch-cli/fastfetch) is for **your machine**. mew is for **what you're working on**.
+
+|                    | mew | fastfetch |
+| ------------------ | --- | --------- |
+| git status         | ✓   | —         |
+| branch / conflicts | ✓   | —         |
+| toolchain          | ✓   | —         |
+| lines / coverage   | ✓   | —         |
+| system info        | ✓   | ✓         |
+| shell git hooks    | ✓   | —         |
+| system-focused     | —   | ✓         |
+| custom modules     | —   | ✓         |
+
+use fastfetch for a system snapshot. use mew when you want the project in front of you.
 
 ## install
 

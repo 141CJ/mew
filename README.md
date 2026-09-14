@@ -31,7 +31,7 @@ outside git, mew becomes a small system readout.
 
 <img src="assets/no_repo.png" alt="mew outside a git repository" width="600">
 
-no daemon. no heavy git subprocess polling. just a fast render.
+it runs on demand and reads git state only when invoked, so it stays fast with nothing running in the background.
 
 ## mew vs fastfetch
 

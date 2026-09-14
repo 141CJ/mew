@@ -62,6 +62,28 @@ or:
 cargo install mew-cli
 ```
 
+nix:
+```nix
+# flake
+{
+  inputs = {
+    mew.url = "github:programmersd21/mew";
+  };
+
+  outputs = { nixpkgs, mew, ...}:
+  {
+    homeConfigurations."username" = home-manager.lib.homeManagerConfiguration {
+      modules = [ mew.homeManagerModules.default ];
+    };
+  };
+}
+
+# home manager
+{
+  programs.mew.enable = true;
+}
+```
+
 ## usage
 
 ```bash

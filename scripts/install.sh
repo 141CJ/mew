@@ -56,10 +56,29 @@ cd "$MEW_SOURCE_DIR"
 log "compiling release binary..."
 cargo build --release --locked
 
-if command -v strip >/dev/null 2>&1; then
-    log "stripping binary..."
-    strip target/release/mew
+echo "mew: stripping binary..."
+strip target/release/mew 2>/dev/null || true
+
+OS_KIND="$(uname -s 2>/dev/null || echo Linux)"
+INSTALL_DIR="/usr/local/bin"
+if [ "$OS_KIND" = "Darwin" ] && [ "$(uname -m 2>/dev/null)" = "arm64" ] && [ -d "/opt/homebrew/bin" ]; then
+    INSTALL_DIR="/opt/homebrew/bin"
 fi
+if [ ! -d "$INSTALL_DIR" ]; then
+    INSTALL_DIR="$HOME/.local/bin"
+    mkdir -p "$INSTALL_DIR"
+fi
+
+echo "mew: installing binary to $INSTALL_DIR..."
+if [ -w "$INSTALL_DIR" ]; then
+    install -m 755 target/release/mew "$INSTALL_DIR/mew"
+else
+    sudo install -m 755 target/release/mew "$INSTALL_DIR/mew"
+fi
+case ":$PATH:" in
+    *":$INSTALL_DIR:"*) ;;
+    *) echo "mew: note: $INSTALL_DIR is not on PATH; add it to use 'mew' directly." ;;
+esac
 
 mkdir -p "$BIN_DIR"
 

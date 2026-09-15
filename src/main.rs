@@ -23,7 +23,7 @@ struct Cli {
 enum Commands {
     /// print shell hook snippet for automatic invocation on cd
     Hook {
-        /// target shell (bash, zsh, fish, nu)
+        /// target shell (bash, zsh, fish, nu, powershell)
         shell: hook::Shell,
     },
 }

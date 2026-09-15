@@ -6,6 +6,7 @@ pub enum Shell {
     Zsh,
     Fish,
     Nu,
+    Powershell,
 }
 
 pub const BASH_HOOK: &str = r#"__auto_mew_on_cd() {
@@ -42,11 +43,35 @@ $env.config.hooks.env_change.PWD = (
     }
 )"#;
 
+pub const POWERSHELL_HOOK: &str = r#"function Invoke-MewOnLocationChanged {
+    try {
+        git rev-parse --is-inside-work-tree 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            if (Get-Command mew -ErrorAction SilentlyContinue) {
+                mew
+            }
+        }
+    } catch {}
+}
+if (Get-Variable -Name PROMPT -ErrorAction SilentlyContinue) {
+    $__MewOriginalPrompt = (Get-Item function:prompt).ScriptBlock
+    function prompt {
+        Invoke-MewOnLocationChanged
+        & $__MewOriginalPrompt
+    }
+} else {
+    function prompt {
+        Invoke-MewOnLocationChanged
+        "PS $($executionContext.SessionState.Path.CurrentLocation)$('>' * ($nestedPromptLevel + 1)) "
+    }
+}"#;
+
 pub fn print_hook(shell: Shell) {
     match shell {
         Shell::Bash => println!("{}", BASH_HOOK),
         Shell::Zsh => println!("{}", ZSH_HOOK),
         Shell::Fish => println!("{}", FISH_HOOK),
         Shell::Nu => println!("{}", NU_HOOK),
+        Shell::Powershell => println!("{}", POWERSHELL_HOOK),
     }
 }

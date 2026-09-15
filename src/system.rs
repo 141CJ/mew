@@ -1,3 +1,4 @@
+#[cfg(target_os = "linux")]
 use std::fs;
 
 #[derive(Debug, Clone, Default)]
@@ -143,7 +144,7 @@ pub fn read_ram() -> Option<(f32, f32, f32)> {
 
 // read disk metrics via libc statvfs (correct struct layout on every
 // platform, unlike a hand-rolled extern block)
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 pub fn read_disk() -> Option<(f32, f32, f32)> {
     use std::ffi::CString;
     use std::mem::MaybeUninit;
@@ -172,7 +173,7 @@ pub fn read_disk() -> Option<(f32, f32, f32)> {
     Some((used_gb, total_gb, percent))
 }
 
-#[cfg(windows)]
+#[cfg(not(target_os = "linux"))]
 pub fn read_disk() -> Option<(f32, f32, f32)> {
     use sysinfo::Disks;
     let cwd = std::env::current_dir().ok();
@@ -298,10 +299,10 @@ pub fn read_os_name() -> String {
         return long.to_lowercase();
     }
     if let Some(name) = sysinfo::System::name() {
-        if let Some(ver) = sysinfo::System::os_version() {
-            if !ver.trim().is_empty() {
-                return format!("{} {}", name, ver).to_lowercase();
-            }
+        if let Some(ver) = sysinfo::System::os_version()
+            && !ver.trim().is_empty()
+        {
+            return format!("{} {}", name, ver).to_lowercase();
         }
         if !name.trim().is_empty() {
             return name.to_lowercase();

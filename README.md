@@ -6,12 +6,12 @@
 
 **A fast terminal card for your project, Git state, and machine.**
 
-[![build](https://img.shields.io/github/actions/workflow/status/programmersd21/mew/ci.yml?style=flat-square&label=build&labelColor=313244&color=a6e3a1)](https://github.com/programmersd21/mew/actions)
-[![release](https://img.shields.io/github/v/release/programmersd21/mew?style=flat-square&label=release&labelColor=313244&color=cba6f7)](https://github.com/programmersd21/mew/releases)
-[![crates.io](https://img.shields.io/crates/v/mew-cli?style=flat-square&logo=rust&logoColor=f9e2af&label=crates.io&labelColor=313244&color=f9e2af)](https://crates.io/crates/mew-cli)
-[![aur](https://img.shields.io/aur/version/mew-bin?style=flat-square&logo=archlinux&logoColor=89dceb&label=aur&labelColor=313244&color=89dceb)](https://aur.archlinux.org/packages/mew-bin)
-[![license](https://img.shields.io/github/license/programmersd21/mew?style=flat-square&label=license&labelColor=313244&color=74c7ec)](LICENSE)
-[![stars](https://img.shields.io/github/stars/programmersd21/mew?style=flat-square&label=stars&labelColor=313244&color=f9e2af)](https://github.com/programmersd21/mew)
+[![build](https://img.shields.io/github/actions/workflow/status/programmersd21/mew/ci.yml?style=flat-square\&label=build\&labelColor=313244\&color=a6e3a1)](https://github.com/programmersd21/mew/actions)
+[![release](https://img.shields.io/github/v/release/programmersd21/mew?style=flat-square\&label=release\&labelColor=313244\&color=cba6f7)](https://github.com/programmersd21/mew/releases)
+[![crates.io](https://img.shields.io/crates/v/mew-cli?style=flat-square\&logo=rust\&logoColor=f9e2af\&label=crates.io\&labelColor=313244\&color=f9e2af)](https://crates.io/crates/mew-cli)
+[![aur](https://img.shields.io/aur/version/mew-bin?style=flat-square\&logo=archlinux\&logoColor=89dceb\&label=aur\&labelColor=313244\&color=89dceb)](https://aur.archlinux.org/packages/mew-bin)
+[![license](https://img.shields.io/github/license/programmersd21/mew?style=flat-square\&label=license\&labelColor=313244\&color=74c7ec)](LICENSE)
+[![stars](https://img.shields.io/github/stars/programmersd21/mew?style=flat-square\&label=stars\&labelColor=313244\&color=f9e2af)](https://github.com/programmersd21/mew)
 
 </div>
 
@@ -52,13 +52,21 @@ Use fastfetch for a system snapshot. Use mew when you want the project in front 
 
 ## Install
 
-### Quick install
+linux and macos:
 
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/programmersd21/mew/main/scripts/install.sh | bash
+```bash
+curl -sSf https://raw.githubusercontent.com/programmersd21/mew/main/scripts/install.sh | bash
 ```
 
-### crates.io
+windows (powershell):
+
+```powershell
+irm https://raw.githubusercontent.com/programmersd21/mew/main/scripts/install.ps1 | iex
+```
+
+or download the matching asset from [releases](https://github.com/programmersd21/mew/releases) (`x86_64-unknown-linux-gnu`, `aarch64-apple-darwin`, `x86_64-pc-windows-msvc`).
+
+or:
 
 ```sh
 cargo install mew-cli
@@ -119,13 +127,20 @@ mew hook fish | source
 mew hook nu
 ```
 
-Hooks activate only inside Git worktrees.
+```powershell
+mew hook powershell | Out-String | Invoke-Expression
+```
+
+hooks only activate inside git worktrees.
 
 ## Configuration
 
 Optional theme file at `~/.config/mew/theme.toml`.
 
-mew ships a Catppuccin-inspired default palette and supports per-element colors.
+```text
+~/.config/mew/theme.toml        (linux and macos)
+%APPDATA%\mew\theme.toml        (windows)
+```
 
 ## Requirements
 
@@ -133,6 +148,8 @@ mew ships a Catppuccin-inspired default palette and supports per-element colors.
 - Nerd Font recommended
 - Rust 1.85+ (build from source only)
 
-## License
+* Linux, macOS, or Windows
+* Nerd Font recommended
+* Rust 1.95+ if building from source
 
 [MIT](LICENSE)

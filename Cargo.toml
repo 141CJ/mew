@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/programmersd21/mew"
 keywords = ["cli", "git", "dashboard", "terminal", "fetch"]
 categories = ["command-line-utilities"]
-rust-version = "1.85"
+rust-version = "1.95"
 
 # binary keeps the short `mew` name; the library keeps its `mew` target
 # name so internal `mew::` imports and integration tests are untouched.
@@ -20,15 +20,16 @@ name = "mew"
 path = "src/lib.rs"
 
 [dependencies]
-git2 = "0.21.0"
+git2 = "0.21"
 serde = { version = "1.0", features = ["derive"] }
-toml = "0.8"
+toml = "1.0"
 dirs = "6.0"
 chrono = "0.4"
 ignore = "0.4"
 clap = { version = "4.6", features = ["derive"] }
 anyhow = "1.0"
 libc = "0.2"
+sysinfo = "0.39"
 
 [profile.release]
 lto = true

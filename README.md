@@ -4,34 +4,34 @@
 
 <img src="assets/demo.png" alt="mew demo" width="700">
 
-**a fast terminal card for your project, git state, and machine.**
+**A fast terminal card for your project, Git state, and machine.**
 
-[![build](https://img.shields.io/github/actions/workflow/status/programmersd21/mew/ci.yml?style=flat-square\&label=build\&labelColor=313244\&color=a6e3a1)](https://github.com/programmersd21/mew/actions)
-[![release](https://img.shields.io/github/v/release/programmersd21/mew?style=flat-square\&label=release\&labelColor=313244\&color=cba6f7)](https://github.com/programmersd21/mew/releases)
-[![crates.io](https://img.shields.io/crates/v/mew-cli?style=flat-square\&logo=rust\&logoColor=f9e2af\&label=crates.io\&labelColor=313244\&color=f9e2af)](https://crates.io/crates/mew-cli)
-[![aur](https://img.shields.io/aur/version/mew-bin?style=flat-square\&logo=archlinux\&logoColor=89dceb\&label=aur\&labelColor=313244\&color=89dceb)](https://aur.archlinux.org/packages/mew-bin)
-[![license](https://img.shields.io/github/license/programmersd21/mew?style=flat-square\&label=license\&labelColor=313244\&color=74c7ec)](LICENSE)
-[![stars](https://img.shields.io/github/stars/programmersd21/mew?style=flat-square\&label=stars\&labelColor=313244\&color=f9e2af)](https://github.com/programmersd21/mew)
+[![build](https://img.shields.io/github/actions/workflow/status/programmersd21/mew/ci.yml?style=flat-square&label=build&labelColor=313244&color=a6e3a1)](https://github.com/programmersd21/mew/actions)
+[![release](https://img.shields.io/github/v/release/programmersd21/mew?style=flat-square&label=release&labelColor=313244&color=cba6f7)](https://github.com/programmersd21/mew/releases)
+[![crates.io](https://img.shields.io/crates/v/mew-cli?style=flat-square&logo=rust&logoColor=f9e2af&label=crates.io&labelColor=313244&color=f9e2af)](https://crates.io/crates/mew-cli)
+[![aur](https://img.shields.io/aur/version/mew-bin?style=flat-square&logo=archlinux&logoColor=89dceb&label=aur&labelColor=313244&color=89dceb)](https://aur.archlinux.org/packages/mew-bin)
+[![license](https://img.shields.io/github/license/programmersd21/mew?style=flat-square&label=license&labelColor=313244&color=74c7ec)](LICENSE)
+[![stars](https://img.shields.io/github/stars/programmersd21/mew?style=flat-square&label=stars&labelColor=313244&color=f9e2af)](https://github.com/programmersd21/mew)
 
 </div>
 
-## what it does
+## What it does
 
-run `mew` in a project and get the useful stuff at a glance:
+Run `mew` in a project and get the useful stuff at a glance:
 
-* git branch, dirty/staged/conflict/ahead state
-* project language and live toolchain version
-* lines of code and detected coverage
-* cpu, frequency, memory, disk, and uptime
-* clock, date, timezone, and day progress
+- Git branch, dirty/staged/conflict/ahead state
+- Project language and live toolchain version
+- Lines of code and detected coverage
+- CPU, frequency, memory, disk, and uptime
+- Clock, date, timezone, and day progress
 
-inside git worktrees, shell hooks can show it automatically.
+Inside Git worktrees, shell hooks can show it automatically.
 
-outside git, mew becomes a small system readout.
+Outside Git, mew becomes a small system readout.
 
 <img src="assets/no_repo.png" alt="mew outside a git repository" width="600">
 
-it runs on demand and reads git state only when invoked, so it stays fast with nothing running in the background.
+It runs on demand and reads Git state only when invoked, so it stays fast with nothing running in the background.
 
 ## mew vs fastfetch
 
@@ -39,93 +39,100 @@ it runs on demand and reads git state only when invoked, so it stays fast with n
 
 |                    | mew | fastfetch |
 | ------------------ | --- | --------- |
-| git status         | ✓   | —         |
-| branch / conflicts | ✓   | —         |
-| toolchain          | ✓   | —         |
-| lines / coverage   | ✓   | —         |
-| system info        | ✓   | ✓         |
-| shell git hooks    | ✓   | —         |
-| system-focused     | —   | ✓         |
-| custom modules     | —   | ✓         |
+| Git status         | ✓   | —         |
+| Branch / conflicts | ✓   | —         |
+| Toolchain          | ✓   | —         |
+| Lines / coverage   | ✓   | —         |
+| System info        | ✓   | ✓         |
+| Shell Git hooks    | ✓   | —         |
+| System-focused     | —   | ✓         |
+| Custom modules     | —   | ✓         |
 
-use fastfetch for a system snapshot. use mew when you want the project in front of you.
+Use fastfetch for a system snapshot. Use mew when you want the project in front of you.
 
-## install
+## Install
 
-```bash
-curl -sSf https://raw.githubusercontent.com/programmersd21/mew/main/scripts/install.sh | bash
+### Quick install
+
+```sh
+curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/programmersd21/mew/main/scripts/install.sh | bash
 ```
 
-or:
+### crates.io
 
-```bash
+```sh
 cargo install mew-cli
 ```
 
-nix:
-```nix
-# flake
-{
-  inputs = {
-    mew.url = "github:programmersd21/mew";
-  };
+### Arch Linux (AUR)
 
-  outputs = { nixpkgs, mew, ...}:
-  {
-    homeConfigurations."username" = home-manager.lib.homeManagerConfiguration {
-      modules = [ mew.homeManagerModules.default ];
-    };
-  };
-}
-
-# home manager
-{
-  programs.mew.enable = true;
-}
-or, last but not the least, but with **your favourite AUR helper**:
-
-```bash
+```sh
 paru -S mew-bin
-```
-
-```bash
+# or
 yay -S mew-bin
 ```
 
-## usage
+### Nix and Home Manager
 
-```bash
+Add mew as a flake input:
+
+```nix
+{
+  inputs.mew.url = "github:programmersd21/mew";
+
+  outputs = { nixpkgs, mew, ... }: {
+    homeConfigurations."username" =
+      home-manager.lib.homeManagerConfiguration {
+        modules = [ mew.homeManagerModules.default ];
+      };
+  };
+}
+```
+
+Then enable the module:
+
+```nix
+programs.mew.enable = true;
+```
+
+### Build from source
+
+Requires Rust 1.85+.
+
+```sh
+cargo install --git https://github.com/programmersd21/mew mew-cli
+```
+
+## Usage
+
+```sh
 mew
 mew --full
 ```
 
-## shell hooks
+### Shell hooks
 
-```bash
+```sh
 eval "$(mew hook bash)"
 eval "$(mew hook zsh)"
 mew hook fish | source
 mew hook nu
 ```
 
-hooks only activate inside git worktrees.
+Hooks activate only inside Git worktrees.
 
-## config
+## Configuration
 
-optional theme:
+Optional theme file at `~/.config/mew/theme.toml`.
 
-```text
-~/.config/mew/theme.toml
-```
+mew ships a Catppuccin-inspired default palette and supports per-element colors.
 
-mew defaults to a Catppuccin-inspired palette and accepts per-element colors.
+## Requirements
 
-## requirements
+- Linux
+- Nerd Font recommended
+- Rust 1.85+ (build from source only)
 
-* Linux
-* Nerd Font recommended
-* Rust 1.85+ if building from source
+## License
 
-## license
-
-MIT
+[MIT](LICENSE)

@@ -62,6 +62,16 @@ or:
 cargo install mew-cli
 ```
 
+or, last but not the least, but with **your favourite AUR helper**:
+
+```bash
+paru -S mew-bin
+```
+
+```bash
+yay -S mew-bin
+```
+
 ## usage
 
 ```bash

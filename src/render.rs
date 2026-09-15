@@ -105,12 +105,25 @@ pub fn format_workspace_path(path: Option<&Path>) -> String {
     };
 
     let canonical = p.canonicalize().unwrap_or(p);
-    let path_str = canonical.to_string_lossy();
+    let raw = canonical.to_string_lossy();
+    let stripped = raw.strip_prefix(r"\\?\").unwrap_or(&raw);
+    let normalized = if cfg!(windows) {
+        stripped.replace('\\', "/")
+    } else {
+        stripped.to_string()
+    };
+    let path_str = normalized;
 
     if let Some(home) = dirs::home_dir() {
-        let home_str = home.to_string_lossy();
-        if path_str.starts_with(home_str.as_ref()) {
-            let relative = &path_str[home_str.len()..];
+        let home_raw = home.to_string_lossy();
+        let home_stripped = home_raw.strip_prefix(r"\\?\").unwrap_or(&home_raw);
+        let home_normalized = if cfg!(windows) {
+            home_stripped.replace('\\', "/")
+        } else {
+            home_stripped.to_string()
+        };
+        if path_str.starts_with(home_normalized.as_str()) {
+            let relative = &path_str[home_normalized.len()..];
             return format!("~{}", relative).to_lowercase();
         }
     }

@@ -144,10 +144,6 @@ Optional theme file at `~/.config/mew/theme.toml`.
 
 ## Requirements
 
-- Linux
-- Nerd Font recommended
-- Rust 1.85+ (build from source only)
-
 * Linux, macOS, or Windows
 * Nerd Font recommended
 * Rust 1.95+ if building from source

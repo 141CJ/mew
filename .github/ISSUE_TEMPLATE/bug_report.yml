@@ -34,6 +34,6 @@ body:
         - os: arch linux / ubuntu
         - shell: bash / zsh / fish / nu
         - terminal: alacritty / kitty / foot
-        - mew version: 0.1.0
+        - mew version: 0.1.1
     validations:
       required: true

@@ -95,16 +95,16 @@ pub fn detect_color_mode() -> ColorMode {
     }
 
     // truecolor detection via colorterm or 24bit terms
-    if let Ok(colorterm) = env::var("COLORTERM") {
-        if colorterm == "truecolor" || colorterm == "24bit" {
-            return ColorMode::Truecolor;
-        }
+    if let Ok(colorterm) = env::var("COLORTERM")
+        && (colorterm == "truecolor" || colorterm == "24bit")
+    {
+        return ColorMode::Truecolor;
     }
 
-    if let Ok(term) = env::var("TERM") {
-        if term.contains("24bit") || term.contains("truecolor") || term.contains("xterm-256color") {
-            return ColorMode::Truecolor;
-        }
+    if let Ok(term) = env::var("TERM")
+        && (term.contains("24bit") || term.contains("truecolor") || term.contains("xterm-256color"))
+    {
+        return ColorMode::Truecolor;
     }
 
     ColorMode::Truecolor
@@ -137,18 +137,18 @@ pub fn theme_path() -> Option<PathBuf> {
 }
 
 pub fn load_theme() -> ThemeConfig {
-    if let Some(path) = theme_path() {
-        if path.exists() {
-            match fs::read_to_string(&path) {
-                Ok(content) => match toml::from_str::<ThemeConfig>(&content) {
-                    Ok(theme) => return theme,
-                    Err(err) => {
-                        eprintln!("mew: warning: failed to parse {}: {}", path.display(), err);
-                    }
-                },
+    if let Some(path) = theme_path()
+        && path.exists()
+    {
+        match fs::read_to_string(&path) {
+            Ok(content) => match toml::from_str::<ThemeConfig>(&content) {
+                Ok(theme) => return theme,
                 Err(err) => {
-                    eprintln!("mew: warning: failed to read {}: {}", path.display(), err);
+                    eprintln!("mew: warning: failed to parse {}: {}", path.display(), err);
                 }
+            },
+            Err(err) => {
+                eprintln!("mew: warning: failed to read {}: {}", path.display(), err);
             }
         }
     }

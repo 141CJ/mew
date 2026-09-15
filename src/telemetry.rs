@@ -147,14 +147,14 @@ pub fn detect_coverage(root: &Path) -> String {
         let mut found_lines = 0;
         let mut hit_lines = 0;
         for line in content.lines() {
-            if let Some(stripped) = line.strip_prefix("LF:") {
-                if let Ok(val) = stripped.trim().parse::<usize>() {
-                    found_lines += val;
-                }
-            } else if let Some(stripped) = line.strip_prefix("LH:") {
-                if let Ok(val) = stripped.trim().parse::<usize>() {
-                    hit_lines += val;
-                }
+            if let Some(stripped) = line.strip_prefix("LF:")
+                && let Ok(val) = stripped.trim().parse::<usize>()
+            {
+                found_lines += val;
+            } else if let Some(stripped) = line.strip_prefix("LH:")
+                && let Ok(val) = stripped.trim().parse::<usize>()
+            {
+                hit_lines += val;
             }
         }
         if found_lines > 0 {
@@ -165,18 +165,17 @@ pub fn detect_coverage(root: &Path) -> String {
 
     // check for tarpaulin-report.json
     let tarpaulin_path = root.join("tarpaulin-report.json");
-    if tarpaulin_path.is_file() {
-        if let Ok(content) = fs::read_to_string(&tarpaulin_path) {
-            if let Some(idx) = content.find("\"coverage\":") {
-                let slice = &content[idx + 11..];
-                let num_str: String = slice
-                    .chars()
-                    .take_while(|c| c.is_ascii_digit() || *c == '.')
-                    .collect();
-                if let Ok(pct) = num_str.parse::<f32>() {
-                    return format!("{:.1}% (tarpaulin)", pct);
-                }
-            }
+    if tarpaulin_path.is_file()
+        && let Ok(content) = fs::read_to_string(&tarpaulin_path)
+        && let Some(idx) = content.find("\"coverage\":")
+    {
+        let slice = &content[idx + 11..];
+        let num_str: String = slice
+            .chars()
+            .take_while(|c| c.is_ascii_digit() || *c == '.')
+            .collect();
+        if let Ok(pct) = num_str.parse::<f32>() {
+            return format!("{:.1}% (tarpaulin)", pct);
         }
     }
 

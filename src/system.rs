@@ -14,6 +14,7 @@ pub struct SystemTelemetry {
 }
 
 // sample /proc/stat twice with a brief sleep to calculate instantaneous cpu utilization without a persistent daemon
+#[cfg(target_os = "linux")]
 pub fn read_cpu_usage() -> Option<f32> {
     fn read_stat_line() -> Option<(u64, u64)> {
         let content = fs::read_to_string("/proc/stat").ok()?;
@@ -50,7 +51,22 @@ pub fn read_cpu_usage() -> Option<f32> {
     Some(usage.clamp(0.0, 100.0))
 }
 
+#[cfg(not(target_os = "linux"))]
+pub fn read_cpu_usage() -> Option<f32> {
+    let mut sys = sysinfo::System::new_all();
+    sys.refresh_cpu_usage();
+    std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+    sys.refresh_cpu_usage();
+    let usage = sys.global_cpu_usage();
+    if usage.is_finite() {
+        Some(usage.clamp(0.0, 100.0))
+    } else {
+        None
+    }
+}
+
 // None when the file is absent (vms/containers often lack cpufreq)
+#[cfg(target_os = "linux")]
 pub fn read_cpu_freq() -> Option<f32> {
     let path = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq";
     let content = fs::read_to_string(path).ok()?;
@@ -58,6 +74,23 @@ pub fn read_cpu_freq() -> Option<f32> {
     Some(khz / 1_000_000.0)
 }
 
+#[cfg(not(target_os = "linux"))]
+pub fn read_cpu_freq() -> Option<f32> {
+    let mut sys = sysinfo::System::new_all();
+    sys.refresh_cpu_frequency();
+    let cpus = sys.cpus();
+    if cpus.is_empty() {
+        return None;
+    }
+    let sum_mhz: u64 = cpus.iter().map(|c| c.frequency()).sum();
+    let avg_mhz = sum_mhz as f32 / cpus.len() as f32;
+    if avg_mhz <= 0.0 || !avg_mhz.is_finite() {
+        return None;
+    }
+    Some(avg_mhz / 1000.0)
+}
+
+#[cfg(target_os = "linux")]
 pub fn read_ram() -> Option<(f32, f32, f32)> {
     let content = fs::read_to_string("/proc/meminfo").ok()?;
     let mut total_kb: Option<u64> = None;
@@ -92,8 +125,25 @@ pub fn read_ram() -> Option<(f32, f32, f32)> {
     }
 }
 
+#[cfg(not(target_os = "linux"))]
+pub fn read_ram() -> Option<(f32, f32, f32)> {
+    let mut sys = sysinfo::System::new();
+    sys.refresh_memory();
+    let total = sys.total_memory();
+    if total == 0 {
+        return None;
+    }
+    let available = sys.available_memory();
+    let used = total.saturating_sub(available);
+    let total_gb = total as f32 / (1024.0 * 1024.0 * 1024.0);
+    let used_gb = used as f32 / (1024.0 * 1024.0 * 1024.0);
+    let percent = (used as f32 / total as f32) * 100.0;
+    Some((used_gb, total_gb, percent))
+}
+
 // read disk metrics via libc statvfs (correct struct layout on every
 // platform, unlike a hand-rolled extern block)
+#[cfg(unix)]
 pub fn read_disk() -> Option<(f32, f32, f32)> {
     use std::ffi::CString;
     use std::mem::MaybeUninit;
@@ -122,6 +172,56 @@ pub fn read_disk() -> Option<(f32, f32, f32)> {
     Some((used_gb, total_gb, percent))
 }
 
+#[cfg(windows)]
+pub fn read_disk() -> Option<(f32, f32, f32)> {
+    use sysinfo::Disks;
+    let cwd = std::env::current_dir().ok();
+    let disks = Disks::new_with_refreshed_list();
+    let mut list: Vec<_> = disks.iter().collect();
+    if list.is_empty() {
+        return None;
+    }
+    if let Some(dir) = cwd.as_deref() {
+        let mut best: Option<&sysinfo::Disk> = None;
+        let mut best_len = 0usize;
+        for disk in &list {
+            let mount = disk.mount_point();
+            if dir.starts_with(mount) {
+                let len = mount.as_os_str().len();
+                if len >= best_len {
+                    best_len = len;
+                    best = Some(*disk);
+                }
+            }
+        }
+        if let Some(disk) = best {
+            let total_bytes = disk.total_space();
+            let available = disk.available_space();
+            if total_bytes == 0 {
+                return None;
+            }
+            let used_bytes = total_bytes.saturating_sub(available);
+            let total_gb = total_bytes as f32 / (1024.0 * 1024.0 * 1024.0);
+            let used_gb = used_bytes as f32 / (1024.0 * 1024.0 * 1024.0);
+            let percent = (used_bytes as f32 / total_bytes as f32) * 100.0;
+            return Some((used_gb, total_gb, percent));
+        }
+    }
+    list.sort_by_key(|d| std::cmp::Reverse(d.total_space()));
+    let disk = list.into_iter().next()?;
+    let total_bytes = disk.total_space();
+    if total_bytes == 0 {
+        return None;
+    }
+    let available = disk.available_space();
+    let used_bytes = total_bytes.saturating_sub(available);
+    let total_gb = total_bytes as f32 / (1024.0 * 1024.0 * 1024.0);
+    let used_gb = used_bytes as f32 / (1024.0 * 1024.0 * 1024.0);
+    let percent = (used_bytes as f32 / total_bytes as f32) * 100.0;
+    Some((used_gb, total_gb, percent))
+}
+
+#[cfg(target_os = "linux")]
 pub fn read_uptime() -> Option<String> {
     let content = fs::read_to_string("/proc/uptime").ok()?;
     let first = content.split_whitespace().next()?;
@@ -143,7 +243,28 @@ pub fn read_uptime() -> Option<String> {
     }
 }
 
+#[cfg(not(target_os = "linux"))]
+pub fn read_uptime() -> Option<String> {
+    let total_secs = sysinfo::System::uptime();
+    if total_secs == 0 {
+        return Some("0m".to_string());
+    }
+    let days = total_secs / 86400;
+    let rem = total_secs % 86400;
+    let hours = rem / 3600;
+    let rem = rem % 3600;
+    let mins = rem / 60;
+    if days > 0 {
+        Some(format!("{}d {}h {}m", days, hours, mins))
+    } else if hours > 0 {
+        Some(format!("{}h {}m", hours, mins))
+    } else {
+        Some(format!("{}m", mins))
+    }
+}
+
 // os name (from /etc/os-release PRETTY_NAME or NAME, falling back to std::env::consts::OS)
+#[cfg(target_os = "linux")]
 pub fn read_os_name() -> String {
     if let Ok(content) = fs::read_to_string("/etc/os-release") {
         for line in content.lines() {
@@ -160,6 +281,32 @@ pub fn read_os_name() -> String {
         }
     }
 
+    if let Some(long) = sysinfo::System::long_os_version()
+        && !long.trim().is_empty()
+    {
+        return long.to_lowercase();
+    }
+
+    std::env::consts::OS.to_lowercase()
+}
+
+#[cfg(not(target_os = "linux"))]
+pub fn read_os_name() -> String {
+    if let Some(long) = sysinfo::System::long_os_version()
+        && !long.trim().is_empty()
+    {
+        return long.to_lowercase();
+    }
+    if let Some(name) = sysinfo::System::name() {
+        if let Some(ver) = sysinfo::System::os_version() {
+            if !ver.trim().is_empty() {
+                return format!("{} {}", name, ver).to_lowercase();
+            }
+        }
+        if !name.trim().is_empty() {
+            return name.to_lowercase();
+        }
+    }
     std::env::consts::OS.to_lowercase()
 }
 
@@ -187,6 +334,7 @@ pub fn os_icon() -> &'static str {
 
 // live session info for the context grid: login shell + terminal emulator.
 // both are real reads (never fabricated); lowercased for the house style.
+#[cfg(not(windows))]
 pub fn read_shell_info() -> (String, String) {
     let shell = std::env::var("SHELL")
         .ok()
@@ -196,6 +344,40 @@ pub fn read_shell_info() -> (String, String) {
     let term = std::env::var("TERM_PROGRAM")
         .ok()
         .filter(|s| !s.trim().is_empty())
+        .or_else(|| std::env::var("TERMINAL").ok())
+        .unwrap_or_else(|| std::env::var("TERM").unwrap_or_else(|_| "—".to_string()))
+        .to_lowercase();
+    (shell, term)
+}
+
+#[cfg(windows)]
+pub fn read_shell_info() -> (String, String) {
+    let shell = std::env::var("SHELL")
+        .ok()
+        .and_then(|s| {
+            s.rsplit(['/', '\\'])
+                .next()
+                .map(|b| b.trim_end_matches(".exe").to_string())
+        })
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| {
+            std::env::var("ComSpec").ok().and_then(|s| {
+                s.rsplit('\\')
+                    .next()
+                    .map(|b| b.trim_end_matches(".exe").to_string())
+            })
+        })
+        .unwrap_or_else(|| "—".to_string())
+        .to_lowercase();
+    let term = std::env::var("TERM_PROGRAM")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| {
+            std::env::var("WT_SESSION")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+                .map(|_| "windows terminal".to_string())
+        })
         .or_else(|| std::env::var("TERMINAL").ok())
         .unwrap_or_else(|| std::env::var("TERM").unwrap_or_else(|_| "—".to_string()))
         .to_lowercase();
@@ -261,7 +443,21 @@ pub fn read_toolchain_version(lang: &str) -> Option<String> {
         _ => return None,
     };
 
-    let line = probe_version(cmd, args)?;
+    let line = probe_version(cmd, args).or_else(|| {
+        if key == "python" {
+            probe_version("python", args)
+        } else if key == "c" {
+            probe_version("gcc", args)
+                .or_else(|| probe_version("clang", args))
+                .or_else(|| probe_version("cl", args))
+        } else if key == "c++" {
+            probe_version("g++", args)
+                .or_else(|| probe_version("clang++", args))
+                .or_else(|| probe_version("cl", args))
+        } else {
+            None
+        }
+    })?;
     let ver = first_version_token(&line)?;
     // c, c++ and java compilers vary by vendor (gcc/clang, openjdk/temurin),
     // so the display name comes from the output, not the mapping above.
@@ -338,11 +534,71 @@ fn first_version_token(line: &str) -> Option<String> {
 
 // toolchain of the login shell itself ($SHELL --version), for shell repos.
 fn shell_toolchain() -> Option<String> {
+    if cfg!(windows) {
+        return windows_shell_toolchain();
+    }
     let shell_path = std::env::var("SHELL").ok()?;
     let base = shell_path.rsplit('/').next().filter(|s| !s.is_empty())?;
     let line = probe_version(base, &["--version"])?;
     let ver = first_version_token(&line)?;
     Some(format!("{} {}", base.to_lowercase(), ver))
+}
+
+#[cfg(windows)]
+fn windows_shell_toolchain() -> Option<String> {
+    let shell_path = std::env::var("SHELL")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .or_else(|| std::env::var("ComSpec").ok())?;
+    let base_raw = shell_path
+        .rsplit(['/', '\\'])
+        .next()
+        .filter(|s| !s.is_empty())?;
+    let base = base_raw.trim_end_matches(".exe").trim_end_matches(".EXE");
+    if base.is_empty() {
+        return None;
+    }
+    let low = base.to_lowercase();
+    if low == "powershell" || low == "powershell_ise" {
+        let output = std::process::Command::new(base_raw)
+            .args([
+                "-NoProfile",
+                "-Command",
+                "$PSVersionTable.PSVersion.ToString()",
+            ])
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        let text = String::from_utf8_lossy(&output.stdout);
+        let line = text.lines().next()?.trim().to_string();
+        let ver = first_version_token(&line)?;
+        return Some(format!("{} {}", low, ver));
+    }
+    if low == "cmd" {
+        let output = std::process::Command::new(base_raw)
+            .args(["/c", "ver"])
+            .output()
+            .ok()?;
+        let text = if output.stdout.is_empty() {
+            String::from_utf8_lossy(&output.stderr).into_owned()
+        } else {
+            String::from_utf8_lossy(&output.stdout).into_owned()
+        };
+        let line = text.lines().next()?.trim().to_string();
+        let ver = first_version_token(&line)?;
+        return Some(format!("{} {}", low, ver));
+    }
+    let line =
+        probe_version(base, &["--version"]).or_else(|| probe_version(base_raw, &["--version"]))?;
+    let ver = first_version_token(&line)?;
+    Some(format!("{} {}", low, ver))
+}
+
+#[cfg(not(windows))]
+fn windows_shell_toolchain() -> Option<String> {
+    None
 }
 
 // collect full system telemetry for --full mode

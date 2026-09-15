@@ -10,29 +10,64 @@ permissions:
 
 jobs:
   build-release:
-    name: build linux
-    runs-on: ubuntu-latest
+    name: build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset_ext: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset_ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_ext: zip
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: install stable toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: cache dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
 
       - name: build release binary
-        run: cargo build --release --locked
+        run: cargo build --release --locked --target ${{ matrix.target }}
 
-      - name: package asset
+      - name: package asset (unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           set -eux
-          STAGE="mew-${{ github.ref_name }}-linux-x86_64"
+          STAGE="mew-${{ github.ref_name }}-${{ matrix.target }}"
           mkdir -p "$STAGE"
-          cp target/release/mew "$STAGE/"
+          cp "target/${{ matrix.target }}/release/mew" "$STAGE/"
           cp README.md LICENSE "$STAGE/" 2>/dev/null || true
           tar -czf "$STAGE.tar.gz" "$STAGE"
-          sha256sum "$STAGE.tar.gz" > "$STAGE.tar.gz.sha256"
+          sha256sum "$STAGE.tar.gz" > "$STAGE.tar.gz.sha256" || shasum -a 256 "$STAGE.tar.gz" > "$STAGE.tar.gz.sha256"
           ls -lh "$STAGE.tar.gz"*
+
+      - name: package asset (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $Stage = "mew-${{ github.ref_name }}-${{ matrix.target }}"
+          New-Item -ItemType Directory -Force -Path $Stage | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/mew.exe" "$Stage/"
+          if (Test-Path README.md) { Copy-Item README.md "$Stage/" }
+          if (Test-Path LICENSE) { Copy-Item LICENSE "$Stage/" }
+          Compress-Archive -Path $Stage -DestinationPath "$Stage.zip" -Force
+          $Hash = (Get-FileHash "$Stage.zip" -Algorithm SHA256).Hash.ToLower()
+          "$Hash  $Stage.zip" | Out-File -FilePath "$Stage.zip.sha256" -Encoding ascii
+          Get-ChildItem "$Stage.zip*"
 
       - name: upload release assets
         uses: softprops/action-gh-release@v3
@@ -41,3 +76,5 @@ jobs:
           files: |
             mew-*.tar.gz
             mew-*.tar.gz.sha256
+            mew-*.zip
+            mew-*.zip.sha256

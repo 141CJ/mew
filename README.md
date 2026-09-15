@@ -82,6 +82,14 @@ nix:
 {
   programs.mew.enable = true;
 }
+or, last but not the least, but with **your favourite AUR helper**:
+
+```bash
+paru -S mew-bin
+```
+
+```bash
+yay -S mew-bin
 ```
 
 ## usage

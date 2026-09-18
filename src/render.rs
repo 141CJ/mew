@@ -844,10 +844,19 @@ pub fn render_full(
             .top_language
             .clone()
             .unwrap_or_else(|| ("—".to_string(), 0.0));
+        // prefer full language names over decimal precision in the 13-col
+        // slot: "100% gdscript" fits, "100.0% gdsc.." does not.
+        let mut lang_label = format!("{:.1}% {}", lang_pct, lang_name);
+        if lang_label.chars().count() > 13 {
+            let short = format!("{:.0}% {}", lang_pct, lang_name);
+            if short.chars().count() <= 13 {
+                lang_label = short;
+            }
+        }
         let lang_text = format!(
             "{}{}{}",
             p.gauge_fill,
-            truncate_str(&format!("{:.1}% {}", lang_pct, lang_name), 13),
+            truncate_str(&lang_label, 13),
             p.reset
         );
         pad_to_visible(

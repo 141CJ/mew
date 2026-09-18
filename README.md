@@ -20,7 +20,7 @@
 Run `mew` in a project and get the useful stuff at a glance:
 
 - Git branch, dirty/staged/conflict/ahead state
-- Project language and live toolchain version
+- Project language (rust, python, go, c/c++, js/ts, c#, gdscript/godot, dart, …) and live toolchain version
 - Lines of code and detected coverage
 - CPU, frequency, memory, disk, and uptime
 - Clock, date, timezone, and day progress

@@ -19,14 +19,21 @@ fn extension_to_lang(ext: &str) -> &'static str {
         "go" => "go",
         "c" | "h" => "c",
         "cpp" | "cc" | "cxx" | "hpp" => "c++",
+        "cs" => "c#",
+        "gd" | "gdshader" => "gdscript",
+        "tscn" | "tres" => "godot",
         "js" | "mjs" | "cjs" => "javascript",
         "ts" | "mts" | "cts" => "typescript",
         "tsx" | "jsx" => "react",
+        "vue" => "vue",
+        "svelte" => "svelte",
         "html" | "htm" => "html",
         "css" | "scss" | "sass" | "less" => "css",
-        "sh" | "bash" | "zsh" => "shell",
+        "sh" | "bash" | "zsh" | "fish" | "nu" => "shell",
+        "ps1" | "psm1" => "powershell",
         "lua" => "lua",
         "zig" => "zig",
+        "dart" => "dart",
         "toml" | "yaml" | "yml" | "json" => "config",
         "md" | "markdown" => "markdown",
         "java" => "java",
@@ -34,6 +41,23 @@ fn extension_to_lang(ext: &str) -> &'static str {
         "swift" => "swift",
         "rb" => "ruby",
         "php" => "php",
+        "hs" => "haskell",
+        "ex" | "exs" => "elixir",
+        "erl" | "hrl" => "erlang",
+        "clj" | "cljs" | "cljc" => "clojure",
+        "scala" | "sc" => "scala",
+        "r" => "r",
+        "jl" => "julia",
+        "pl" | "pm" => "perl",
+        "sql" => "sql",
+        "m" | "mm" => "objc",
+        "f" | "f90" | "f95" | "for" => "fortran",
+        "ml" | "mli" => "ocaml",
+        "nim" => "nim",
+        "d" => "d",
+        "groovy" | "gradle" => "groovy",
+        "tf" => "terraform",
+        "proto" => "protobuf",
         _ => "other",
     }
 }
@@ -198,6 +222,17 @@ pub fn detect_project_language(root: &Path) -> Option<String> {
     if has("cargo.toml") || has("cargo.lock") {
         return Some("rust".to_string());
     }
+    // godot first: a c# godot project has both project.godot and .cs files,
+    // and "gdscript" keeps the env row consistent with the loc top language.
+    if has("project.godot") || has_ext(".gd") || has_ext(".gdshader") || has_ext(".tscn") {
+        return Some("gdscript".to_string());
+    }
+    if has_ext(".csproj") || has("global.json") || has_ext(".sln") || has_ext(".cs") {
+        return Some("c#".to_string());
+    }
+    if has("pubspec.yaml") || has_ext(".dart") {
+        return Some("dart".to_string());
+    }
     if has("go.mod") || has_ext(".go") {
         return Some("go".to_string());
     }
@@ -245,7 +280,40 @@ pub fn detect_project_language(root: &Path) -> Option<String> {
     if has_ext(".c") || has("cmakelists.txt") || has("makefile") {
         return Some("c".to_string());
     }
-    if has_ext(".sh") {
+    if has("mix.exs") || has_ext(".ex") || has_ext(".exs") {
+        return Some("elixir".to_string());
+    }
+    if has_ext(".scala") || has_ext(".sc") {
+        return Some("scala".to_string());
+    }
+    if has_ext(".clj") || has_ext(".cljs") || has_ext(".cljc") || has("deps.edn") {
+        return Some("clojure".to_string());
+    }
+    if has_ext(".erl") || has_ext(".hrl") || has("rebar.config") {
+        return Some("erlang".to_string());
+    }
+    if has_ext(".r") {
+        return Some("r".to_string());
+    }
+    if has_ext(".jl") {
+        return Some("julia".to_string());
+    }
+    if has_ext(".pl") || has_ext(".pm") || has("cpanfile") {
+        return Some("perl".to_string());
+    }
+    if has_ext(".sql") {
+        return Some("sql".to_string());
+    }
+    if has_ext(".tf") {
+        return Some("terraform".to_string());
+    }
+    if has_ext(".proto") {
+        return Some("protobuf".to_string());
+    }
+    if has_ext(".ps1") || has_ext(".psm1") {
+        return Some("powershell".to_string());
+    }
+    if has_ext(".sh") || has_ext(".fish") || has_ext(".nu") {
         return Some("shell".to_string());
     }
     None

@@ -431,16 +431,30 @@ pub fn read_toolchain_version(lang: &str) -> Option<String> {
         "rust" => (Some("rustc"), "rustc", VERSION_FLAG),
         "python" => (Some("python"), "python3", VERSION_FLAG),
         "go" => (Some("go"), "go", VERSION_CMD),
-        "javascript" | "typescript" | "react" => (Some("node"), "node", VERSION_FLAG),
+        "javascript" | "typescript" | "react" | "vue" | "svelte" => {
+            (Some("node"), "node", VERSION_FLAG)
+        }
         "c" => (None, "cc", VERSION_FLAG),
         "c++" => (None, "c++", VERSION_FLAG),
-        "java" => (None, "java", VERSION_FLAG),
+        "c#" | "csharp" => (Some("dotnet"), "dotnet", VERSION_FLAG),
+        "gdscript" | "godot" | "gdshader" => (Some("godot"), "godot", VERSION_FLAG),
+        "dart" => (Some("dart"), "dart", VERSION_FLAG),
+        "java" | "groovy" => (None, "java", VERSION_FLAG),
         "swift" => (Some("swift"), "swift", VERSION_FLAG),
         "ruby" => (Some("ruby"), "ruby", VERSION_FLAG),
         "php" => (Some("php"), "php", VERSION_FLAG),
         "zig" => (Some("zig"), "zig", VERSION_CMD),
         "lua" => (Some("lua"), "lua", V_FLAG),
         "haskell" => (Some("ghc"), "ghc", VERSION_FLAG),
+        "elixir" => (Some("elixir"), "elixir", VERSION_FLAG),
+        "erlang" => (Some("erl"), "erl", &["-version"]),
+        "clojure" => (Some("clojure"), "clojure", VERSION_FLAG),
+        "scala" => (Some("scala"), "scala", VERSION_FLAG),
+        "r" => (Some("r"), "R", VERSION_FLAG),
+        "julia" => (Some("julia"), "julia", VERSION_FLAG),
+        "perl" => (Some("perl"), "perl", V_FLAG),
+        "terraform" => (Some("terraform"), "terraform", VERSION_FLAG),
+        "powershell" => (Some("pwsh"), "pwsh", VERSION_FLAG),
         _ => return None,
     };
 
@@ -455,6 +469,8 @@ pub fn read_toolchain_version(lang: &str) -> Option<String> {
             probe_version("g++", args)
                 .or_else(|| probe_version("clang++", args))
                 .or_else(|| probe_version("cl", args))
+        } else if key == "powershell" {
+            probe_version("powershell", args)
         } else {
             None
         }
@@ -515,7 +531,8 @@ fn probe_version(cmd: &str, args: &[&str]) -> Option<String> {
 
 // first whitespace-separated token that looks like a version: leading
 // non-digits stripped ("v", "go"), at least one dot ("5.2.21(1)-release"
-// yields "5.2.21"). skips a literal "version" token ("go version ...").
+// yields "5.2.21", "4.3.stable" yields "4.3"). skips a literal "version"
+// token ("go version ...").
 fn first_version_token(line: &str) -> Option<String> {
     for tok in line.split_whitespace() {
         if tok.eq_ignore_ascii_case("version") {
@@ -526,8 +543,9 @@ fn first_version_token(line: &str) -> Option<String> {
             .chars()
             .take_while(|c| c.is_ascii_digit() || *c == '.')
             .collect();
+        let stripped = stripped.trim_matches('.');
         if stripped.contains('.') && stripped.starts_with(|c: char| c.is_ascii_digit()) {
-            return Some(stripped);
+            return Some(stripped.to_string());
         }
     }
     None

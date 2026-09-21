@@ -70,8 +70,7 @@ const MAX_COUNT_BYTES: u64 = 1024 * 1024;
 
 // walk workspace respecting .gitignore using ignore crate, counting lines of code
 pub fn count_lines_of_code(force_count_lines: bool, root: &Path) -> (usize, Option<(String, f32)>) {
-    let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    let git_state = git::detect_git_state(&cwd).unwrap_or_default();
+    let git_state = git::detect_git_state(root).unwrap_or_default();
 
     if git_state.is_repo || force_count_lines {
         let mut lang_counts: HashMap<&'static str, usize> = HashMap::new();
@@ -111,8 +110,6 @@ pub fn count_lines_of_code(force_count_lines: bool, root: &Path) -> (usize, Opti
                 continue;
             }
 
-            let lang = extension_to_lang(&ext);
-
             if let Ok(file) = fs::File::open(path) {
                 let reader = BufReader::new(file);
                 let lines = reader.lines().count();
@@ -121,10 +118,10 @@ pub fn count_lines_of_code(force_count_lines: bool, root: &Path) -> (usize, Opti
                     *lang_counts.entry(lang).or_insert(0) += lines;
                 }
             }
+        }
 
-            if total_lines == 0 {
-                return (0, None);
-            }
+        if total_lines == 0 {
+            return (0, None);
         }
 
         // top primary code language (ignoring config and markdown if code exists)

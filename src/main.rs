@@ -15,6 +15,7 @@ struct Cli {
     #[arg(long)]
     full: bool,
 
+    /// counts lines if in non-git directory
     #[arg(long, short)]
     force_count_lines: bool,
 

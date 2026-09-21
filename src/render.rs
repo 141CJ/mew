@@ -567,6 +567,7 @@ fn sys_cell(
 
 // Full Mode (--full, 79 total width)
 pub fn render_full(
+    force_count_lines: bool,
     git: &GitState,
     sys: &SystemTelemetry,
     telem: &ProjectTelemetry,
@@ -826,7 +827,7 @@ pub fn render_full(
     // grid math: left cell 38 (16 prefix + 22 value) + 2 gutter +
     // right cell 35 (16 prefix + 19 value) = 75. every variable value is
     // truncated into its slot, so long counts/names can never overflow.
-    let loc_val = if git.is_repo {
+    let loc_val = if git.is_repo || force_count_lines {
         pad_to_visible(&format!("{} lines", telem.total_lines), 22)
     } else {
         pad_to_visible("line count unavailable", 22)

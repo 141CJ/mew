@@ -69,11 +69,11 @@ fn extension_to_lang(ext: &str) -> &'static str {
 const MAX_COUNT_BYTES: u64 = 1024 * 1024;
 
 // walk workspace respecting .gitignore using ignore crate, counting lines of code
-pub fn count_lines_of_code(root: &Path) -> (usize, Option<(String, f32)>) {
+pub fn count_lines_of_code(force_count_lines: bool, root: &Path) -> (usize, Option<(String, f32)>) {
     let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let git_state = git::detect_git_state(&cwd).unwrap_or_default();
 
-    if git_state.is_repo {
+    if git_state.is_repo || force_count_lines {
         let mut lang_counts: HashMap<&'static str, usize> = HashMap::new();
         let mut total_lines = 0;
 
@@ -327,8 +327,8 @@ pub fn detect_project_language(root: &Path) -> Option<String> {
     None
 }
 
-pub fn collect_project_telemetry(root: &Path) -> ProjectTelemetry {
-    let (total_lines, top_language) = count_lines_of_code(root);
+pub fn collect_project_telemetry(force_count_lines: bool, root: &Path) -> ProjectTelemetry {
+    let (total_lines, top_language) = count_lines_of_code(force_count_lines, root);
     let coverage_info = detect_coverage(root);
 
     ProjectTelemetry {
